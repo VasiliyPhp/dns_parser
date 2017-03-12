@@ -149,11 +149,11 @@
 	
 	function ajax_parse_good_list($url, $page_number = 0, $ar, $has_next = 0){
 		p("Стр $page_number - url - $url",0);
-		$url = $url . '?' . http_build_query(['offset'=>$page_number*50,'p'=>$page_number]);
+		$_url = $url . '?' . http_build_query(['offset'=>$page_number*50,'p'=>$page_number]);
 		
 		$headers = ['X-Requested-With:XMLHttpRequest'];
 		
-		$response = json_decode(curl($url, $headers),true);
+		$response = json_decode(curl($_url, $headers),true);
 		
 		$doc = phpQuery::newDocument($response['content']);
 		
