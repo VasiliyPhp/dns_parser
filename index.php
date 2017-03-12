@@ -70,7 +70,7 @@
 				else{
 					// p('нет субкатегории ' . $s_cat, 0);
 					ajax_parse_good_list($s_link, 0, $ar);
-					continue;
+					// continue;
 				}
 				// $image = SITE . pq($child)->find('img')->attr('src');
 				// $img = save_img($image, iconv('cp1251','utf-8',$s_name), 'категории', iconv('cp1251','utf-8',$name));
@@ -148,14 +148,14 @@
 	}
 	
 	function ajax_parse_good_list($url, $page_number = 0, $ar, $has_next = 0){
-		
+		p("Стр $page_number - url - $url",0);
 		$url = $url . '?' . http_build_query(['offset'=>$page_number*50,'p'=>$page_number]);
 		
 		$headers = ['X-Requested-With:XMLHttpRequest'];
 		
-		$doc = json_decode(curl($url, $headers),true);
+		$response = json_decode(curl($url, $headers),true);
 		
-		$doc = phpQuery::newDocument($doc['content']);
+		$doc = phpQuery::newDocument($response['content']);
 		
 		$tmp = pq('.product .thumbnail>.image>a');
 		
@@ -184,12 +184,12 @@
 				$ar['images'][] = pq($img)->attr('src');
 			}
 			$ar['images'] = serialize($ar['images']);
-			save_csv($ar);die;
+			save_csv($ar);
 			$doc2->unloadDocument();
 		}
 		
 		$doc->unloadDocument();
-		if(!$doc['isEnd']){
+		if(!$response['isEnd']){
 			$page_number++;
 			ajax_parse_good_list($url, $page_number, $ar);
 		}
@@ -198,6 +198,9 @@
 	
 	function save_csv($ar){
 		global $properties,$stop_file;
+		
+		$ar = array_map('trim',$ar);
+		
 		file_exists($stop_file) || p('Вызвана остановка');
 		$path = 'csv/' . translit($ar['cat']);
 		file_exists($path) or mkdir($path,null,1);
@@ -210,7 +213,6 @@
 		}
 		$result = [];
 		foreach($properties as $prop){
-			// echo $value;
 			$result[] = isset($ar[$prop])? $ar[$prop] : '';
 		}
 		fputcsv($f, $result, ';','"');
