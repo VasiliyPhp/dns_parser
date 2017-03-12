@@ -1,0 +1,13 @@
+{
+    "name": "samsung/mototeka_parser",
+    "require": {
+        "coderockr/php-query": "dev-master"
+    },
+    "authors": [
+        {
+            "name": "VasiliyPhp",
+            "email": "mister.sergeew-v@yandex.ru"
+        }
+    ],
+    "minimum-stability": "dev"
+}
