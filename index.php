@@ -41,9 +41,14 @@
 			$ar['cat'] = $cat;
 			foreach($childs as $child){
 				$s_cat 		   = pq($child)->find('>.item-wrap a')->text();
+				if(!in_array($s_cat, ['Жесткие диски 3.5"','Жесткие диски 2.5"'])){
+					continue;
+				}
 				$s_link = SITE . pq($child)->find('>.item-wrap a')->attr('href');
 				$sub_level = pq($child)->find('.level-2 li');
 				$ar['s_cat'] = $s_cat;
+				$ar['s_s_cat'] = '';
+				$ar['s_s_s_cat'] = '';
 				// $ar['s_cat_img'] = $img;
 				if(count($sub_level)){
 					foreach($sub_level as $sub){
@@ -51,31 +56,31 @@
 						$s_s_cat = pq('>.item-wrap a',$sub)->text();
 						$s_s_link = SITE . pq('>.item-wrap a',$sub)->attr('href');
 						$sub_level2 = pq($sub)->find('.level-3 li a');
-						
-						$ar['s_s_cat'] = $s_s_cat;
-						if(count($sub_level2)){
-							foreach($sub_level2 as $sub_level2_item){
-								$s_s_s_cat = pq($sub_level2_item)->text();
-								$s_s_s_link = SITE . pq($sub_level2_item)->attr('href');
-								$ar['s_s_s_cat'] = $s_s_s_cat;
-								parse_good_list($s_s_s_link, $ar);
-							}
-						} 
-						else{
-							$ar['s_s_cat'] = $s_s_cat;
-							parse_good_list($s_s_link, $ar);							
+					$ar['s_s_s_cat'] = '';
+					$ar['s_s_cat'] = $s_s_cat;
+					if(count($sub_level2)){
+						foreach($sub_level2 as $sub_level2_item){
+							$s_s_s_cat = pq($sub_level2_item)->text();
+							$s_s_s_link = SITE . pq($sub_level2_item)->attr('href');
+							$ar['s_s_s_cat'] = $s_s_s_cat;
+							ajax_parse_good_list($s_s_s_link, 0, $ar);
 						}
 					}
-				}
-				else{
-					// p('нет субкатегории ' . $s_cat, 0);
-					ajax_parse_good_list($s_link, 0, $ar);
-					// continue;
-				}
-				// $image = SITE . pq($child)->find('img')->attr('src');
-				// $img = save_img($image, iconv('cp1251','utf-8',$s_name), 'категории', iconv('cp1251','utf-8',$name));
-				// $img = save_img($image, $s_name, 'категории', $name);
-				
+					else{
+						$ar['s_s_cat'] = $s_s_cat;
+						ajax_parse_good_list($s_s_link, 0, $ar);							
+					}
+					}
+					}
+					else{
+						// p('нет субкатегории ' . $s_cat, 0);
+						ajax_parse_good_list($s_link, 0, $ar);
+						// continue;
+					}
+					// $image = SITE . pq($child)->find('img')->attr('src');
+					// $img = save_img($image, iconv('cp1251','utf-8',$s_name), 'категории', iconv('cp1251','utf-8',$name));
+					// $img = save_img($image, $s_name, 'категории', $name);
+					
 			}
 		}
 		$doc->unloadDocument();
@@ -134,7 +139,6 @@
 		}
 		if(count($next_page = pq('.catalog-category-more',$doc))){
 			p('i has more products',0);
-			$url = SITE . pq('a', $next_page)->attr('href');
 			$doc->unloadDocument();
 			
 			ajax_parse_good_list($link, 1, $ar, 1);
@@ -148,8 +152,8 @@
 	}
 	
 	function ajax_parse_good_list($url, $page_number = 0, $ar, $has_next = 0){
-		p("Стр $page_number - url - $url",0);
 		$_url = $url . '?' . http_build_query(['offset'=>$page_number*50,'p'=>$page_number]);
+		p("$_url",0);
 		
 		$headers = ['X-Requested-With:XMLHttpRequest'];
 		
@@ -173,12 +177,12 @@
 				pq($char)->replaceWith(pq($char)->text());
 			}
 			
-			$ar['price']		   = pq('[itemprop=price]')->attr('content');
-			$ar['desc']	   = pq('#description .price_item_description')->html();
+			$ar['price'] = pq('[itemprop=price]')->attr('content');
+			$ar['desc']	 = pq('#description .price_item_description')->html();
 			$ar['props'] = pq('.options-group #main-characteristics')->html();
-			$ar['name']			   = pq('h1.page-title')->text();
+			$ar['name']	 = pq('h1.page-title')->text();
 			
-			$images		  		   = pq('.main-image-slider-wrap img');
+			$images		 = pq('.main-image-slider-wrap img');
 			$ar['images'] = [];
 			foreach($images as $img){
 				$ar['images'][] = pq($img)->attr('src');
@@ -300,7 +304,7 @@
 		"х"=>"kh", "ц"=>"ts", "ч"=>"ch", "ш"=>"sh", "щ"=>"sch", 
 		"ъ"=>"", "ы"=>"y", "ь"=>"", "э"=>"e", "ю"=>"yu", 
 		"я"=>"ya", " "=>"-", "."=>"", ","=>"", "/"=>"-",  
-		":"=>"", ";"=>"","—"=>"", "–"=>"-"
+		"*"=>"",":"=>"", "\""=>"", "'"=>"", ";"=>"","—"=>"", "–"=>"-"
 		);
 		return strtr($str,$tr);
-	}																																																																																										
+	}																																																																																											
